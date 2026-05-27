@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+
+# Runtime state (per-session feedback artifacts under any target dir)
+feedback/
+**/feedback/
+
+# Local-only secrets / settings
+session.json
+.env
+.env.local

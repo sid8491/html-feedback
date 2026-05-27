@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>html-feedback — user guide</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #555;
+    --accent: #2c5ed9;
+    --accent-soft: #e7eeff;
+    --border: #e3e3e3;
+    --code-bg: #f5f5f7;
+    --good: #2f8a45;
+    --bad: #b13434;
+    --page-bg: #ffffff;
+    --card-bg: #ffffff;
+    --note-bg: #fff7e0;
+    --note-border: #e8b400;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #e8e8ea;
+      --muted: #a0a0a8;
+      --accent: #82aaff;
+      --accent-soft: #1c2540;
+      --border: #2c2c33;
+      --code-bg: #1a1a1f;
+      --good: #6bcf8a;
+      --bad: #ff8a8a;
+      --page-bg: #101015;
+      --card-bg: #16161c;
+      --note-bg: #2a2410;
+      --note-border: #d4a73a;
+    }
+    body { background: var(--page-bg); }
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--page-bg); }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    max-width: 860px;
+    margin: 48px auto;
+    padding: 0 24px 80px;
+    color: var(--fg);
+    line-height: 1.65;
+    font-size: 16px;
+  }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 28px; }
+  h1 { font-size: 34px; margin: 0 0 6px; letter-spacing: -0.5px; }
+  .tagline { color: var(--muted); margin: 0 0 6px; font-size: 17px; }
+  .subtitle { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 8px; }
+  h2 { font-size: 23px; margin-top: 48px; padding-top: 4px; scroll-margin-top: 20px; }
+  h3 { font-size: 17px; margin-top: 24px; color: var(--accent); }
+  h4 { font-size: 15px; margin: 18px 0 6px; }
+  p { margin: 12px 0; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code, kbd {
+    font-family: "SF Mono", Consolas, "Courier New", monospace;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13.5px;
+  }
+  kbd {
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 0 var(--border);
+    font-weight: 600;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.55;
+    border: 1px solid var(--border);
+  }
+  pre code { background: transparent; padding: 0; font-size: 13px; }
+  ul, ol { padding-left: 22px; }
+  li { margin: 6px 0; }
+
+  /* Rainbow gradient headings (per demo) */
+  .rainbow {
+    background: linear-gradient(90deg, #ff5757 0%, #ffa64d 25%, #f7d44c 50%, #4dc468 75%, #4d8df7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    display: inline-block;
+  }
+
+  /* Pill badge */
+  .badge {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 22px;
+    margin: 24px 0 8px;
+  }
+  .toc h4 { margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+  .toc ol { columns: 2; column-gap: 28px; margin: 0; padding-left: 20px; }
+  .toc li { margin: 3px 0; font-size: 14px; }
+  @media (max-width: 640px) { .toc ol { columns: 1; } }
+
+  /* Use case grid */
+  .use-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 18px 0;
+  }
+  @media (max-width: 640px) { .use-grid { grid-template-columns: 1fr; } }
+  .use-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    background: var(--card-bg);
+  }
+  .use-card .ico { font-size: 22px; margin-bottom: 4px; }
+  .use-card h3 { margin: 0 0 4px; font-size: 15px; color: var(--fg); }
+  .use-card p { margin: 0; font-size: 13.5px; color: var(--muted); line-height: 1.5; }
+
+  /* Two-column good/bad */
+  .twocol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 18px 0;
+  }
+  @media (max-width: 640px) { .twocol { grid-template-columns: 1fr; } }
+  .col {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    background: var(--card-bg);
+  }
+  .col.good { border-left: 3px solid var(--good); }
+  .col.bad { border-left: 3px solid var(--bad); }
+  .col h4 { margin: 0 0 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+  .col.good h4 { color: var(--good); }
+  .col.bad h4 { color: var(--bad); }
+  .col ul { margin: 0; padding-left: 18px; font-size: 14px; }
+  .col li { margin: 5px 0; }
+
+  /* Flow diagram (matches demo's invoke-flow) */
+  .invoke-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 18px 0 22px;
+    padding: 20px 12px;
+    background: linear-gradient(135deg, #fafbff 0%, #f5f7ff 100%);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    .invoke-flow { background: linear-gradient(135deg, #16161e 0%, #1a1b28 100%); }
+  }
+  .invoke-flow .step {
+    text-align: center;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    min-width: 130px;
+    background: var(--card-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  .invoke-flow .icon { font-size: 26px; line-height: 1; }
+  .invoke-flow .label { font-weight: 600; font-size: 13px; margin-top: 6px; color: var(--fg); }
+  .invoke-flow .hint { font-size: 11.5px; color: var(--muted); margin-top: 3px; line-height: 1.35; }
+  .invoke-flow .arrow { font-size: 22px; color: var(--accent); font-weight: 600; }
+
+  /* Step blocks */
+  .step-block {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin: 10px 0;
+    background: var(--card-bg);
+  }
+  .step-num {
+    flex: 0 0 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .step-block .body { flex: 1; }
+  .step-block .body p { margin: 0; font-size: 14.5px; }
+  .step-block .body p + p { margin-top: 4px; color: var(--muted); font-size: 13.5px; }
+
+  /* Architecture diagram (SVG-ish boxes) */
+  .arch {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px;
+    background: var(--card-bg);
+    margin: 16px 0;
+  }
+  .arch-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .arch-box {
+    border: 1.5px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--accent-soft);
+    text-align: center;
+  }
+  .arch-box.alt { border-color: var(--good); background: rgba(47,138,69,.08); }
+  .arch-box.file { border-color: #c87f2e; background: rgba(232,180,0,.10); }
+  .arch-box .name { font-weight: 600; font-size: 14px; }
+  .arch-box .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .arch-arrow { color: var(--accent); font-weight: 600; text-align: center; font-size: 18px; }
+  .arch-stack { display: flex; flex-direction: column; gap: 6px; }
+
+  /* Tables */
+  table { border-collapse: collapse; margin: 14px 0; font-size: 14px; width: 100%; }
+  th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--code-bg); font-size: 13px; }
+  td code { font-size: 12.5px; }
+
+  /* Callouts */
+  .note {
+    background: var(--note-bg);
+    border-left: 3px solid var(--note-border);
+    padding: 12px 16px;
+    margin: 18px 0;
+    border-radius: 4px;
+    font-size: 14.5px;
+  }
+  .note b { color: var(--fg); }
+
+  /* UI tour items */
+  .ui-item {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ui-item:last-child { border-bottom: none; }
+  .ui-item .ui-ico { font-size: 22px; text-align: center; }
+  .ui-item .ui-name { font-weight: 600; font-size: 14.5px; }
+  .ui-item .ui-desc { font-size: 13.5px; color: var(--muted); margin-top: 2px; line-height: 1.5; }
+
+  /* FAQ */
+  details {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    background: var(--card-bg);
+  }
+  details summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14.5px;
+    list-style: none;
+    padding-right: 24px;
+    position: relative;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after {
+    content: "+";
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: var(--accent);
+    font-size: 18px;
+    font-weight: 600;
+  }
+  details[open] summary::after { content: "−"; }
+  details summary + * { margin-top: 8px; }
+  details p, details ul { font-size: 14px; }
+
+  footer {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 60px;
+    border-top: 1px solid var(--border);
+    padding-top: 18px;
+  }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>html-feedback</h1>
+  <p class="tagline">A Claude Code skill that turns a folder of static HTML pages into a collaborative review surface.</p>
+  <div class="subtitle">User guide</div>
+</header>
+
+<nav class="toc" aria-label="Table of contents">
+  <h4>Contents</h4>
+  <ol>
+    <li><a href="#what">What is it</a></li>
+    <li><a href="#use-cases">Use cases</a></li>
+    <li><a href="#fit">When to use (and not)</a></li>
+    <li><a href="#quickstart">Quick start</a></li>
+    <li><a href="#workflow">The typical workflow</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#files">What lives where</a></li>
+    <li><a href="#ui-tour">UI tour</a></li>
+    <li><a href="#shortcuts">Keyboard shortcuts</a></li>
+    <li><a href="#api">API reference</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#security">Security note</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#credits">Credits</a></li>
+  </ol>
+</nav>
+
+<!-- ============================================================ -->
+<h2 id="what">What is it</h2>
+<p>
+  <b>html-feedback</b> is a small Claude Code skill that lets you review a folder of static HTML pages the
+  way you'd review a Google Doc — by leaving comments directly on the rendered page — and have Claude edit
+  the underlying source files in response. It serves your pages locally, injects a thin commenting layer into
+  each one, and watches a tiny JSONL-based "mailbox" for things you want changed.
+</p>
+<p>
+  The core promise is simple: <em>you stay in the browser, comments accumulate, click <b>▶ Process</b>,
+  Claude edits, repeat.</em> There's no jumping back to the terminal between every change, no copy-pasting
+  selectors, and no losing track of which suggestions have been applied. Every edit is snapshotted, walked
+  through in the browser with a yellow highlight, and one-click revertible.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="use-cases">Use cases</h2>
+<p>Anywhere you'd otherwise be screenshotting a page, drawing arrows on it in Preview, and pasting the result
+   back into a chat. The skill is happiest when the artifact <em>is</em> the HTML.</p>
+
+<div class="use-grid">
+  <div class="use-card">
+    <div class="ico">📊</div>
+    <h3>Iterating on research artifacts</h3>
+    <p>Tighten phrasing, fix captions, re-order sections in HTML reports without rebuilding from a notebook.</p>
+  </div>
+  <div class="use-card">
+    <div class="ico">🤖</div>
+    <h3>Reviewing AI-generated documents</h3>
+    <p>When Claude generated the page in the first place, this gives you a clean follow-up loop to refine it without re-prompting from scratch.</p>
+  </div>
+  <div class="use-card">
+    <div class="ico">📝</div>
+    <h3>Copy-editing marketing pages</h3>
+    <p>Highlight the awkward sentence, type "shorter, more punchy", click Process. The diff lands as a yellow highlight you can revert.</p>
+  </div>
+  <div class="use-card">
+    <div class="ico">🎨</div>
+    <h3>Design mockup reviews</h3>
+    <p>Pure HTML/CSS prototypes — no full app needed. Comment on spacing, color, layout. Claude edits the styles in place.</p>
+  </div>
+  <div class="use-card">
+    <div class="ico">📚</div>
+    <h3>Documentation polish</h3>
+    <p>Code-review-style edit cycles on docs sites or readme pages. Threaded replies mean you can push back on Claude's interpretation without losing context.</p>
+  </div>
+  <div class="use-card">
+    <div class="ico">🗒️</div>
+    <h3>Meeting notes &amp; transcripts</h3>
+    <p>Restructure, summarize, de-duplicate — annotate the rough draft and let Claude turn it into the clean version.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="fit">When to use vs when NOT to use</h2>
+
+<div class="twocol">
+  <div class="col good">
+    <h4>✓ Good fits</h4>
+    <ul>
+      <li>A handful to a few dozen static HTML files in one folder.</li>
+      <li>Iterative copy, structure, or styling changes.</li>
+      <li>You're the only person leaving feedback.</li>
+      <li>The page renders correctly when opened directly off disk (no required backend).</li>
+      <li>You'd rather <em>see</em> what you're changing than dictate it from the terminal.</li>
+    </ul>
+  </div>
+  <div class="col bad">
+    <h4>✗ Not good fits</h4>
+    <ul>
+      <li>Live web apps with a backend, database, or auth state.</li>
+      <li>Hundreds of pages — the inject step touches every file, and the sidebar gets noisy fast.</li>
+      <li>Multiple people commenting at the same time (everyone runs their own local instance).</li>
+      <li>Anything that has to be reachable over a network — the server binds to <code>127.0.0.1</code> and won't change.</li>
+      <li>Files that aren't HTML (Markdown, PDFs, images — out of scope).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="quickstart">Quick start</h2>
+
+<p>From a clone of this repo:</p>
+<pre><code>git clone &lt;repo&gt;
+cd html-feedback
+python scripts/start.py --dir /path/to/your/html</code></pre>
+
+<p>That command:</p>
+<ol>
+  <li>Adds <code>feedback/</code> to your project's <code>.gitignore</code> (only if one already exists).</li>
+  <li>Injects a tiny <code>&lt;link&gt;</code> + <code>&lt;script&gt;</code> tag into every <code>*.html</code> file (idempotently — re-runs are no-ops).</li>
+  <li>Starts a local server on a random free port on <code>127.0.0.1</code>, with a 32-char token in the URL.</li>
+  <li>Opens your default browser to the first page.</li>
+</ol>
+
+<p>Or, from inside Claude Code, in natural language:</p>
+<pre><code>start html feedback on ./pages</code></pre>
+<p>or use the slash command:</p>
+<pre><code>/html-feedback</code></pre>
+<p>
+  Claude will run <code>start.py</code> for you, share the URL, and start watching <code>feedback/control.jsonl</code>
+  for your <b>▶ Process</b> clicks.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="workflow">The typical <span class="rainbow">workflow</span></h2>
+
+<div class="invoke-flow">
+  <div class="step">
+    <div class="icon">👤</div>
+    <div class="label">You</div>
+    <div class="hint">leave comments<br>in the browser</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="icon">🤖</div>
+    <div class="label">Claude Code</div>
+    <div class="hint">picks up the batch<br>and edits HTML</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="icon">⚙️</div>
+    <div class="label">Local server</div>
+    <div class="hint">snapshots, logs,<br>pushes SSE updates</div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="step">
+    <div class="icon">🌐</div>
+    <div class="label">Browser</div>
+    <div class="hint">auto-reloads with<br>yellow highlights</div>
+  </div>
+</div>
+
+<p>A full session typically looks like this:</p>
+
+<div class="step-block">
+  <div class="step-num">1</div>
+  <div class="body">
+    <p><b>Leave comments.</b> Open the URL. Highlight any text and the selection toolbar pops up — click 💬 Comment, type your note. Or press <kbd>e</kbd> to enter element-pick mode and click a specific element. Or use the sidebar's <em>+ Page</em> button for whole-page feedback.</p>
+    <p>Comments accumulate quietly in the sidebar. The 💬 floating button shows a red bubble with the unread count.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">2</div>
+  <div class="body">
+    <p><b>Click ▶ Process (N).</b> When you've left as many comments as you want in this round, hit the blue button in the sidebar. That sends the whole batch to Claude.</p>
+    <p>A processing pill appears at the top of the page: <code>Processing 1/4…</code> updates in real time as Claude works through each comment.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">3</div>
+  <div class="body">
+    <p><b>Claude edits.</b> For each comment, Claude takes a "before" snapshot, applies the smallest change that satisfies the request, takes an "after" snapshot, and writes a one-line summary to history.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">4</div>
+  <div class="body">
+    <p><b>Page auto-reloads.</b> The Server-Sent Events stream notices the new history entries and the browser reloads. Every changed region is wrapped in a yellow highlight with Claude's summary as a tooltip.</p>
+    <p>Use <kbd>j</kbd> / <kbd>k</kbd> to step through the changes one at a time.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">5</div>
+  <div class="body">
+    <p><b>Revert anything you don't love.</b> Each addressed comment in the sidebar carries a <b>↶ Revert</b> link. Click it — or press <kbd>r</kbd> while the change is focused in the walkthrough. Patch-style: only that one edit gets undone, unrelated later edits stay put.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">6</div>
+  <div class="body">
+    <p><b>Redo if you change your mind.</b> After a revert, the link flips to <b>↺ Redo</b>. One click re-applies that exact edit.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">7</div>
+  <div class="body">
+    <p><b>Reply on a thread to push back.</b> Even after a comment is addressed, you can hit <em>Reply</em> on it. A reply asking for further changes ("shorter still", "no, keep the old wording") goes into the next batch. Acknowledgements like "thanks" or "looks good" are silent no-ops — Claude won't try to interpret them as new work.</p>
+  </div>
+</div>
+
+<div class="step-block">
+  <div class="step-num">8</div>
+  <div class="body">
+    <p><b>Clean up when done.</b> Click <b>clear addressed (N)</b> in the sidebar header to sweep out finished comments. Start the next round with a clean slate.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="architecture">Architecture</h2>
+
+<p>Three processes, three files. That's the whole picture:</p>
+
+<pre><code>+--------------------+        HTTP + SSE         +-------------------+
+|  Browser           |  &lt;----------------------&gt; |  Python server    |
+|  feedback.js/.css  |     127.0.0.1:&lt;port&gt;      |  lib/server.py    |
++--------------------+      ?t=&lt;token&gt;           +---------+---------+
+                                                           |
+                                                           | reads/writes
+                                                           v
+                                                 +-------------------+
+                                                 |  feedback/        |
+                                                 |   inbox.jsonl     |
+                                                 |   control.jsonl   |
+                                                 |   history.jsonl   |
+                                                 |   session.json    |
+                                                 |   .snapshots/     |
+                                                 +---------+---------+
+                                                           |
+                                                           | tails control.jsonl
+                                                           v
+                                                 +-------------------+
+                                                 |  Claude (Edit)    |
+                                                 +-------------------+</code></pre>
+
+<p>The same picture, piece by piece:</p>
+
+<div class="arch">
+  <div class="arch-row">
+    <div class="arch-box">
+      <div class="name">🌐 Browser</div>
+      <div class="sub">feedback.js + feedback.css injected into each page</div>
+    </div>
+    <div class="arch-arrow">⇄</div>
+    <div class="arch-box alt">
+      <div class="name">⚙️ Local server</div>
+      <div class="sub">Python stdlib only, 127.0.0.1, token-gated, idle shutdown</div>
+    </div>
+  </div>
+  <div class="arch-row">
+    <div></div>
+    <div class="arch-arrow">↕</div>
+    <div></div>
+  </div>
+  <div class="arch-row">
+    <div class="arch-stack">
+      <div class="arch-box file">
+        <div class="name">📥 inbox.jsonl</div>
+        <div class="sub">your comments + soft-delete tombstones</div>
+      </div>
+      <div class="arch-box file">
+        <div class="name">▶ control.jsonl</div>
+        <div class="sub">"process" triggers from the UI</div>
+      </div>
+    </div>
+    <div></div>
+    <div class="arch-stack">
+      <div class="arch-box file">
+        <div class="name">📜 history.jsonl</div>
+        <div class="sub">edits, reverts, external-edit markers</div>
+      </div>
+      <div class="arch-box file">
+        <div class="name">📸 .snapshots/</div>
+        <div class="sub">before + after HTML per edit (powers revert/redo)</div>
+      </div>
+    </div>
+  </div>
+  <div class="arch-row">
+    <div></div>
+    <div class="arch-arrow">↑ tail</div>
+    <div></div>
+  </div>
+  <div class="arch-row">
+    <div></div>
+    <div class="arch-box">
+      <div class="name">🤖 Claude</div>
+      <div class="sub">reads control trigger, edits HTML, writes history</div>
+    </div>
+    <div></div>
+  </div>
+</div>
+
+<p>
+  Only the browser writes to <code>inbox.jsonl</code> and <code>control.jsonl</code> (via the server).
+  Only Claude writes to <code>history.jsonl</code> and edits <code>*.html</code>. The server watches both
+  JSONL files and pushes Server-Sent Events to the browser so it can reload pages and run the change
+  walkthrough. JSONL files are <em>strictly</em> append-only — soft-delete tombstones are how comments get removed.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="files">What lives where</h2>
+
+<h4>In the repo</h4>
+<table>
+  <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>lib/server.py</code></td><td>The HTTP server. Stdlib only — no third-party deps. Routes, SSE stream, snapshot/revert helpers, token auth, idle &amp; parent-PID shutdown.</td></tr>
+    <tr><td><code>lib/feedback.js</code></td><td>Browser-side library: selection toolbar, sidebar, anchor resolution, walkthrough overlay, orphan tray.</td></tr>
+    <tr><td><code>lib/feedback.css</code></td><td>UI theming; respects <code>prefers-color-scheme: dark</code>. All classes are prefixed <code>hfb-</code>.</td></tr>
+    <tr><td><code>scripts/inject.py</code></td><td>Idempotently adds the <code>&lt;link&gt;</code> + <code>&lt;script&gt;</code> tags to your HTML files. Subcommands: <code>inject</code>, <code>remove</code>, <code>status</code>.</td></tr>
+    <tr><td><code>scripts/start.py</code></td><td>One-shot launcher: inject, spawn server, open browser, stream logs, clean shutdown on Ctrl-C.</td></tr>
+    <tr><td><code>SKILL.md</code></td><td>Tells Claude Code when and how to activate the skill.</td></tr>
+    <tr><td><code>SPEC.md</code></td><td>The wire-protocol and schema contract (read this before contributing).</td></tr>
+    <tr><td><code>README.md</code></td><td>The 30-second overview.</td></tr>
+  </tbody>
+</table>
+
+<h4>In your target directory</h4>
+<table>
+  <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>*.html</code></td><td>Your pages. The inject step adds a small <code>&lt;!-- hfb:begin --&gt;...&lt;!-- hfb:end --&gt;</code> block; nothing else is changed.</td></tr>
+    <tr><td><code>feedback/inbox.jsonl</code></td><td>Append-only log of every comment you've made plus delete tombstones.</td></tr>
+    <tr><td><code>feedback/control.jsonl</code></td><td>Append-only log of <b>▶ Process</b> triggers. Written by the server when you click; tailed by Claude.</td></tr>
+    <tr><td><code>feedback/history.jsonl</code></td><td>Append-only log of every edit, revert, and external-edit. Written by Claude.</td></tr>
+    <tr><td><code>feedback/session.json</code></td><td>Live URL, token, PID, started-at. Overwritten on each start, deleted on clean shutdown.</td></tr>
+    <tr><td><code>feedback/.snapshots/&lt;page&gt;/</code></td><td>Before-and-after HTML snapshots per edit. Powers patch-style revert and redo.</td></tr>
+  </tbody>
+</table>
+
+<p>To wipe everything and start fresh: <code>rm -rf &lt;target&gt;/feedback/</code>. (On Windows: <code>rmdir /s feedback</code>.)</p>
+
+<!-- ============================================================ -->
+<h2 id="ui-tour">UI tour</h2>
+<p>Everything visible in the browser, what it does, and how to summon it.</p>
+
+<div>
+  <div class="ui-item">
+    <div class="ui-ico">💬</div>
+    <div>
+      <div class="ui-name">Floating action button (bottom-right)</div>
+      <div class="ui-desc">Toggles the sidebar open and closed. Carries a small red bubble showing the count of <em>open</em> (unprocessed) root comments.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">📋</div>
+    <div>
+      <div class="ui-name">Sidebar drawer</div>
+      <div class="ui-desc">Threaded list of every comment on the current page, newest-first. Each card has a delete ✕, a reply link, and (if addressed) a ↶ Revert / ↺ Redo link.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">🔘</div>
+    <div>
+      <div class="ui-name">Selection toolbar pill</div>
+      <div class="ui-desc">Pops up next to any text selection inside the page. Contains one button — 💬 Comment — that opens the composer with the selection pre-anchored.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">📝</div>
+    <div>
+      <div class="ui-name">Comment composer popover</div>
+      <div class="ui-desc">A small popover with a textarea, a "Reply to" badge if you're threading, and a Send button. Posts to the server and inserts into the sidebar immediately.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">▶</div>
+    <div>
+      <div class="ui-name">▶ Process (N) button</div>
+      <div class="ui-desc">The blue call-to-action in the sidebar that batches all open comments and sends them to Claude. Disabled when N is 0.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">⏳</div>
+    <div>
+      <div class="ui-name">Processing pill (top of page)</div>
+      <div class="ui-desc">Shows <code>Processing N/M…</code> with a spinner while Claude works, then <code>✓ All N processed</code> when done. Survives the auto-reloads that happen between edits.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">🟨</div>
+    <div>
+      <div class="ui-name">Yellow change highlights + j/k walkthrough</div>
+      <div class="ui-desc">After a reload, every changed region is wrapped in a soft yellow highlight with Claude's one-line summary as a tooltip. Step through them with <kbd>j</kbd>/<kbd>k</kbd>; press <kbd>r</kbd> to revert the focused one.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">↶</div>
+    <div>
+      <div class="ui-name">↶ Revert / ↺ Redo links</div>
+      <div class="ui-desc">Per-edit, in the sidebar next to each addressed comment. Patch-style — undoing one edit doesn't disturb the others. After revert, the link flips to Redo.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">🧹</div>
+    <div>
+      <div class="ui-name">clear addressed (N)</div>
+      <div class="ui-desc">A link in the sidebar header that soft-deletes every addressed comment on the current page at once. Good for ending a round cleanly.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">🎯</div>
+    <div>
+      <div class="ui-name">Element-pick mode banner</div>
+      <div class="ui-desc">Press <kbd>e</kbd>. A thin banner at the top reminds you you're in pick mode. Hover any element to outline it, click to attach a comment to that element. <kbd>Esc</kbd> exits.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">🚪</div>
+    <div>
+      <div class="ui-name">Orphan tray</div>
+      <div class="ui-desc">Lives at the bottom of the sidebar. Holds comments whose anchors no longer resolve (text removed, structure changed). Each carries a <em>Re-pin</em> button that lets you select new text or an element to re-anchor it.</div>
+    </div>
+  </div>
+
+  <div class="ui-item">
+    <div class="ui-ico">⌨️</div>
+    <div>
+      <div class="ui-name">Help overlay</div>
+      <div class="ui-desc">Press <kbd>?</kbd> any time. Lists every shortcut. <kbd>Esc</kbd> dismisses.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="shortcuts">Keyboard shortcuts</h2>
+
+<table>
+  <thead><tr><th>Key</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr><td><kbd>c</kbd></td><td>Open comment composer for the current text selection</td></tr>
+    <tr><td><kbd>e</kbd></td><td>Toggle element-pick mode</td></tr>
+    <tr><td><kbd>j</kbd> / <kbd>k</kbd></td><td>Walk forward/back through changes after a reload</td></tr>
+    <tr><td><kbd>r</kbd></td><td>Revert the change currently focused in the walkthrough</td></tr>
+    <tr><td><kbd>?</kbd></td><td>Show shortcut help</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Cancel current action (composer, element-pick, modal, walkthrough)</td></tr>
+    <tr><td><kbd>Enter</kbd> <span class="badge">in modal</span></td><td>Confirm</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="api">API reference</h2>
+<p>The endpoints the browser and Claude use. Every request needs a token via <code>?t=&lt;token&gt;</code>
+   or the <code>X-Feedback-Token</code> header — the server returns 403 otherwise.</p>
+
+<table>
+  <thead><tr><th>Method</th><th>Path</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>POST</td><td><code>/api/snapshot</code></td><td>Copy the current page to <code>.snapshots/&lt;page&gt;/&lt;ts&gt;.html</code> and return the path. Called by Claude before <em>and</em> after every edit.</td></tr>
+    <tr><td>POST</td><td><code>/api/feedback</code></td><td>Append a new comment to <code>inbox.jsonl</code>.</td></tr>
+    <tr><td>POST</td><td><code>/api/feedback/delete</code></td><td>Soft-delete a comment (and its replies) by appending a tombstone.</td></tr>
+    <tr><td>POST</td><td><code>/api/feedback/clear-addressed</code></td><td>Soft-delete every addressed comment on the page in one go.</td></tr>
+    <tr><td>POST</td><td><code>/api/process</code></td><td>Append a <code>{"type":"process","pending_ids":[...]}</code> line to <code>control.jsonl</code>. This is what the ▶ button does.</td></tr>
+    <tr><td>POST</td><td><code>/api/revert</code></td><td>Patch-style undo of a specific edit, using the before/after snapshot pair.</td></tr>
+    <tr><td>POST</td><td><code>/api/redo</code></td><td>Re-apply a previously reverted edit by forward-applying the same diff.</td></tr>
+    <tr><td>GET</td><td><code>/api/inbox</code></td><td>Returns the inbox with each comment's <code>status</code> computed (<code>open</code> or <code>addressed</code>); tombstones filtered out.</td></tr>
+    <tr><td>GET</td><td><code>/api/history</code></td><td>Returns every history entry.</td></tr>
+    <tr><td>GET</td><td><code>/api/events</code></td><td>SSE stream — emits <code>history</code>, <code>inbox</code>, and <code>heartbeat</code> events.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="faq">FAQ</h2>
+
+<details>
+  <summary>Can I use this with backend-rendered pages?</summary>
+  <p>
+    No. The server serves files directly off disk — it has no idea how to run your backend. If your page
+    needs a server to render correctly, save out a static snapshot first (Save As → "Webpage, complete" in
+    most browsers) and point html-feedback at the snapshot folder. Comments on the snapshot won't propagate
+    back to your backend templates automatically; you'll need to translate them yourself.
+  </p>
+</details>
+
+<details>
+  <summary>What if my page is huge?</summary>
+  <p>
+    The browser-side library is small and works on big pages, but very long documents are awkward to navigate
+    in the sidebar. Two practical tips: (1) split the document into sections that are individually addressable,
+    (2) use page-level comments for sweeping changes ("shorten everything") rather than highlighting half the
+    page. Hundreds of HTML files in one folder is also rough — the inject step touches every page on startup.
+  </p>
+</details>
+
+<details>
+  <summary>Does it work offline?</summary>
+  <p>
+    Yes for the server, sidebar, and snapshots — all of those are local. <em>Claude</em> obviously still
+    needs network access to do its thing, but the html-feedback infrastructure itself does not.
+  </p>
+</details>
+
+<details>
+  <summary>How do I share with my team?</summary>
+  <p>
+    You don't share the server — it binds to <code>127.0.0.1</code> only by design, and that's not negotiable.
+    For a "team review" workflow, each person runs html-feedback locally on their own copy of the folder.
+    Share comments by committing <code>feedback/inbox.jsonl</code> to git (it's append-only, so it merges cleanly
+    most of the time) or by piping the edits via pull requests. This is fundamentally a single-user tool.
+  </p>
+</details>
+
+<details>
+  <summary>What's the difference between revert and redo?</summary>
+  <p>
+    <b>Revert</b> reverse-applies the diff of one edit — it undoes that specific change while leaving every
+    other edit (before or after) untouched. <b>Redo</b> forward-applies the same diff, so you can re-do an
+    edit you reverted. The same link in the sidebar flips between the two states.
+  </p>
+</details>
+
+<details>
+  <summary>Why didn't a highlight appear after Claude edited?</summary>
+  <p>
+    The walkthrough overlay searches for the <code>after_snippet</code> text inside the rendered page's
+    <code>document.body.innerText</code>. If Claude only changed a style attribute, or changed something that
+    isn't visible text, there's nothing to anchor a highlight to. The edit still happened — it's just not
+    annotated. You can confirm by inspecting the file directly or checking <code>history.jsonl</code>.
+  </p>
+</details>
+
+<details>
+  <summary>What's an "orphan"? How do I re-pin?</summary>
+  <p>
+    An orphan is a comment whose anchor (the text or element it was attached to) no longer resolves in the
+    current DOM — usually because the surrounding content was removed or rewritten in a later edit. Orphans
+    land in a tray at the bottom of the sidebar with the original selected text shown. Click <em>Re-pin</em>,
+    then select new text or click a new element to re-anchor the comment. The original thread is preserved.
+  </p>
+</details>
+
+<details>
+  <summary>Is anything sent to a cloud service?</summary>
+  <p>
+    No. The server, the inbox, the snapshots, and the history all live on your machine. The only outbound
+    network traffic is whatever Claude Code itself sends to Anthropic when you run the skill — and that's the
+    same traffic you'd have for any Claude Code session. The html-feedback layer adds nothing on top.
+  </p>
+</details>
+
+<details>
+  <summary>How do I clean up state?</summary>
+  <p>
+    Delete the <code>feedback/</code> directory inside your target folder:
+  </p>
+  <pre><code>rm -rf &lt;target&gt;/feedback/</code></pre>
+  <p>That wipes all comments, history, snapshots, and the session file. The next run starts completely fresh.
+     To also remove the injected <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> tags from your HTML files,
+     run <code>python scripts/inject.py remove --dir &lt;target&gt;</code>.</p>
+</details>
+
+<details>
+  <summary>Can I customize the colors / style?</summary>
+  <p>
+    Yes. The client CSS in <code>lib/feedback.css</code> uses CSS custom properties (all prefixed
+    <code>--hfb-</code>) and every class is namespaced <code>.hfb-</code>. Override them from your page's own
+    stylesheet, or edit <code>feedback.css</code> directly if you want global changes. The yellow change
+    highlight is just <code>background: rgba(255, 220, 100, .55)</code> with a dashed border — easy to swap.
+  </p>
+</details>
+
+<details>
+  <summary>Can I run more than one of these at a time?</summary>
+  <p>
+    Sure — each run binds to a random free port and writes its own <code>session.json</code> into <em>its
+    own</em> target directory. You'll get separate browser tabs with different tokens. Just don't point two
+    instances at the same target directory.
+  </p>
+</details>
+
+<details>
+  <summary>The processing pill is stuck. What now?</summary>
+  <p>
+    The pill is driven by SSE. If your tab was suspended (laptop closed, background tab for a long time) the
+    stream may have dropped. Refresh the page — the count is recomputed from the inbox/history on load, so
+    you'll get an accurate state back immediately.
+  </p>
+</details>
+
+<!-- ============================================================ -->
+<h2 id="security">Security note</h2>
+
+<div class="note">
+  <b>Local-only, token-gated, no network exposure.</b>
+  <ul>
+    <li>The server binds to <code>127.0.0.1</code> only — never <code>0.0.0.0</code>. Other machines on your LAN cannot reach it.</li>
+    <li>A 32-character URL-safe token is generated at startup. Every request (except <code>GET /healthz</code>) must carry it via <code>?t=&lt;token&gt;</code> or the <code>X-Feedback-Token</code> header. Requests without it get a <code>403</code>.</li>
+    <li>The token is never logged. Request logs go to <code>stderr</code> with method, path, and status only.</li>
+    <li>The server self-shuts down on idle (default 10 minutes of no authenticated activity) and when its parent process dies.</li>
+    <li>This is designed for <b>single-user, local use</b>. It is not hardened for shared servers, multi-user setups, or exposure beyond <code>localhost</code>.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h4>Port already in use</h4>
+<p>
+  The server asks the OS for a free port, so collisions are rare. If you do see a bind error, another instance
+  is probably still running — check <code>feedback/session.json</code> for the PID and stop it, then restart.
+</p>
+
+<h4>Browser didn't open</h4>
+<p>
+  Pass <code>--no-open</code> and copy the URL from the <code>READY</code> line <code>start.py</code> prints to
+  your terminal. The URL includes the token query string and is the only way in.
+</p>
+
+<h4>Process button stuck on a stale count</h4>
+<p>
+  The button shows the count of open root comments. After Claude edits, the count drops to 0 once the page
+  reloads. If it doesn't, the SSE channel may have disconnected — refresh the page.
+</p>
+
+<h4>Comments don't appear in Claude's queue</h4>
+<p>
+  Check that <code>feedback/inbox.jsonl</code> is actually being written to when you click Send. Then make sure
+  you clicked <b>▶ Process</b> — Claude only picks up comments when you trigger a batch, not automatically.
+</p>
+
+<h4>Page reloaded but nothing is highlighted</h4>
+<p>
+  The walkthrough overlay looks for <code>after_snippet</code> text in the live DOM. If a history entry's
+  <code>after_snippet</code> doesn't appear verbatim on the page (style-only changes, for example), no
+  highlight will render. The change is still there — just not annotated.
+</p>
+
+<h4>Revert / Redo conflict</h4>
+<p>
+  Patch-style revert requires the diffed hunk to still be present in the current file. If a later edit
+  overlapped the same region, you'll get a conflict toast instead of a silent failure. Resolve by editing
+  manually or by reverting the conflicting later edit first.
+</p>
+
+<h4>"Couldn't locate anchor" appears as a summary</h4>
+<p>
+  This means Claude tried to address a comment but the text or element it pointed at was no longer findable
+  in the source HTML (most often because the page was edited externally between the comment and Claude's
+  read). The comment is marked addressed so it doesn't loop; re-pin it from the orphan tray to take another swing.
+</p>
+
+<h4>Server won't shut down cleanly</h4>
+<p>
+  Ctrl-C in the terminal running <code>start.py</code> is the cleanest path. If that terminal is gone,
+  open <code>feedback/session.json</code>, find the <code>pid</code>, and kill it directly. The server also
+  self-shuts after 10 minutes of no authenticated activity, so worst case: leave it alone and it'll exit.
+</p>
+
+<!-- ============================================================ -->
+<h2 id="credits">Credits</h2>
+<footer>
+  <p>
+    <b>html-feedback</b> is released under the <a href="https://opensource.org/licenses/MIT">MIT License</a>.
+    Python 3.10+, no external dependencies; works on Windows, macOS, and Linux.
+  </p>
+  <p>
+    Contributing? The wire format, file layout, and component contracts are pinned in
+    <a href="../SPEC.md">SPEC.md</a>. Any behavior change should update the spec first.
+  </p>
+  <p>
+    See also: <a href="../README.md">README</a> · <a href="../SKILL.md">SKILL.md</a> · <a href="../demo/about.html">demo/about.html</a>.
+  </p>
+</footer>
+
+</body>
+</html>
