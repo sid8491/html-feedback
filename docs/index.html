@@ -584,6 +584,115 @@
   .reveal.in { opacity: 1; transform: none; }
 
   ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+
+  /* ---------- responsive refinements ---------- */
+
+  /* tablet (<= 860px) */
+  @media (max-width: 860px) {
+    .nav-inner { padding: 12px 18px; gap: 12px; flex-wrap: wrap; }
+    .nav-links { gap: 16px; }
+    section { padding: 64px 20px; }
+    .install-card { padding: 22px; }
+    .final-cta { padding: 44px 24px; }
+    /* hero mockup body: shrink sidebar so 1fr+220 doesn't crowd */
+    .mock-body { grid-template-columns: 1fr 200px; }
+  }
+
+  /* small tablet / large phone (<= 640px) */
+  @media (max-width: 640px) {
+    .nav-inner { padding: 10px 16px; }
+    .nav-links { gap: 12px; }
+    .nav-links a:not(.btn) { font-size: 13px; }
+    .btn { padding: 8px 14px; font-size: 13px; }
+    .btn-sm { padding: 7px 11px; font-size: 12.5px; }
+
+    .hero { padding: 36px 16px 56px; }
+    h1 { font-size: clamp(28px, 7.5vw, 40px); margin: 14px 0 14px; }
+    .lede { font-size: 16px; margin-bottom: 22px; }
+
+    .cta-row { gap: 10px; }
+    .cta-row .btn { flex: 1 1 auto; justify-content: center; min-height: 44px; }
+
+    .install-shell {
+      padding: 12px 12px; gap: 8px; font-size: 12.5px;
+      max-width: 100%;
+    }
+    .install-shell code { font-size: 12.5px; }
+
+    section { padding: 56px 16px; }
+    .section-head { margin-bottom: 36px; }
+    .section-sub { font-size: 15.5px; }
+
+    .pitch { font-size: 17px; padding-left: 18px; }
+
+    /* hero mockup: stack body so sidebar isn't squeezed */
+    .mock-body { grid-template-columns: 1fr; min-height: 0; }
+    .mock-sidebar { border-left: none; border-top: 1px solid var(--border); }
+    .mock-process { padding: 10px 12px; }
+
+    /* install card */
+    .install-card { padding: 18px; border-radius: var(--radius); }
+    .tabs { width: 100%; justify-content: center; }
+    .tab { padding: 8px 14px; font-size: 13px; }
+    .codeblock { padding: 12px 12px; font-size: 12.5px; }
+    .codeblock code { font-size: 12.5px; }
+
+    /* how-it-works: simplify mobile arrow logic — drop the ↗ kink, stack 1-col */
+    .how-diagram { grid-template-columns: 1fr; gap: 24px; }
+    .how-node::after,
+    .how-node:nth-child(odd)::after,
+    .how-node:nth-child(even)::after,
+    .how-node:nth-child(2)::after,
+    .how-node:nth-child(3)::after {
+      content: "↓"; right: 50%; top: auto; bottom: -18px;
+      transform: translateX(50%);
+      color: var(--accent); font-weight: 700; font-size: 16px;
+    }
+    .how-node:last-child::after { display: none; }
+
+    /* walkthrough mini mocks: sidebar-mini gets too cramped */
+    .mini-mock { min-height: 120px; }
+    .mini-mock .sidebar-mini { width: 80px; font-size: 9px; }
+
+    /* faq */
+    summary { padding: 14px 16px; font-size: 14.5px; }
+    details > div { padding: 0 16px 16px; font-size: 14px; }
+
+    /* final cta */
+    .final-cta { padding: 36px 18px; border-radius: var(--radius); }
+    .final-cta p { font-size: 15.5px; }
+    .final-cta .cta-row .btn { flex: 1 1 auto; }
+
+    /* footer */
+    footer { padding: 24px 18px; }
+    .foot-inner { flex-direction: column; align-items: flex-start; gap: 12px; text-align: left; }
+    .foot-links { flex-wrap: wrap; gap: 14px; row-gap: 8px; }
+  }
+
+  /* small phone (<= 420px) */
+  @media (max-width: 420px) {
+    .nav-inner { gap: 8px; }
+    .nav-links { gap: 10px; }
+    /* hide Docs link on smallest screens — keeps GitHub + Install visible */
+    .nav-links a[href="#how"] { display: none; }
+
+    .hero { padding: 28px 14px 48px; }
+    section { padding: 48px 14px; }
+
+    h1 { font-size: clamp(26px, 8.5vw, 34px); }
+    h2 { font-size: clamp(24px, 7vw, 30px); }
+
+    .install-shell { flex-wrap: wrap; }
+    .install-shell code { flex: 1 1 100%; order: 2; }
+    .install-shell .copy-btn { order: 3; }
+
+    /* features / use cases cards: tighter padding */
+    .feat { padding: 18px; }
+    .uc { padding: 16px; }
+
+    /* walkthrough sidebar overlay would crush — let row 3 sidebar wrap nicely */
+    .mini-mock .sidebar-mini { width: 72px; }
+  }
 </style>
 </head>
 <body>
