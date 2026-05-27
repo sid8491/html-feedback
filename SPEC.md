@@ -344,7 +344,7 @@ __pycache__/
 
 ## 8. Acceptance smoke test (what integration verifies)
 
-1. Run `python scripts/start.py --dir <demo>` where `<demo>` has 2 HTML files.
+1. Run `python scripts/start.py --dir <target>` where `<target>` is a folder containing at least 2 HTML files.
 2. Browser opens to a page with the sidebar visible.
 3. Highlight a sentence, write a comment, click Send.
 4. `feedback/inbox.jsonl` has 1 line; schema matches §3.

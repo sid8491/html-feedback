@@ -127,7 +127,6 @@ html-feedback/
 │   ├── inject.py      Idempotent <script> tag injector
 │   ├── start.py       One-command launcher (inject + spawn + open)
 │   └── watch_control.py  Trigger watcher for batch processing
-├── demo/              Three sample HTML pages to play with
 ├── docs/index.html    Full user guide (open in any browser)
 ├── SKILL.md           Claude Code skill spec — what Claude reads
 ├── SPEC.md            Wire protocol + schemas
