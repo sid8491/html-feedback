@@ -693,6 +693,23 @@
     /* walkthrough sidebar overlay would crush — let row 3 sidebar wrap nicely */
     .mini-mock .sidebar-mini { width: 72px; }
   }
+
+  /* v1.1 — Pages pill in hero mockup sidebar header */
+  .mock-pages-pill {
+    position: relative;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: 999px; padding: 1px 7px;
+    font-size: 11px; line-height: 1.2;
+    color: var(--fg-soft);
+    margin-left: auto; margin-right: 6px;
+  }
+  .mock-pages-pill .dot {
+    position: absolute; top: -2px; right: -2px;
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #e11d48;
+    box-shadow: 0 0 0 2px var(--surface-2);
+  }
 </style>
 </head>
 <body>
@@ -749,6 +766,7 @@
           <div class="mock-sidebar">
             <div class="mock-sidebar-head">
               <strong>Comments</strong>
+              <span class="mock-pages-pill" title="Pages">📄<span class="dot" aria-hidden="true"></span></span>
               <span class="count">3 open</span>
             </div>
             <div class="mock-comment">
@@ -875,6 +893,8 @@
     </div>
     <div class="feat-grid reveal">
       <div class="feat"><span class="ico">💬</span><h3>Inline comments</h3><p>Highlight text, click an element, or attach a note to the whole page.</p></div>
+      <div class="feat"><span class="ico">📸</span><h3>Visual context</h3><p>Every comment captures a screenshot of what you were looking at. Claude reads it and edits with visual context, not just source code.</p></div>
+      <div class="feat"><span class="ico">📄</span><h3>Multi-page nav</h3><p>Jump between HTML files from the sidebar. Per-page comment counts; a red dot tells you when work is pending elsewhere.</p></div>
       <div class="feat"><span class="ico">📦</span><h3>Batch processing</h3><p>Queue a dozen comments and ship them to Claude with one ▶ Process click.</p></div>
       <div class="feat"><span class="ico">⚡</span><h3>Live status pill</h3><p>A floating pill shows <code>Processing N/M…</code> while Claude works through the batch.</p></div>
       <div class="feat"><span class="ico">🧵</span><h3>Threaded replies</h3><p>Push back on an edit without losing the original comment's anchor.</p></div>
@@ -909,7 +929,7 @@
       <div class="how-node">
         <span class="glyph">📋</span>
         <strong>JSONL files</strong>
-        <span class="tech">inbox / control / history</span>
+        <span class="tech">inbox / history / .screenshots</span>
       </div>
       <div class="how-node">
         <span class="glyph">🤖</span>
@@ -987,7 +1007,7 @@
           <div class="line s"></div>
           <div class="pill">💬 Comment</div>
         </div>
-        <p class="walk-cap">Highlight any text — a pill appears next to your selection.</p>
+        <p class="walk-cap">Highlight any text — a pill appears next to your selection. A screenshot of the region is captured automatically.</p>
       </div>
       <div class="walk-step">
         <span class="walk-num">2</span>
@@ -1013,7 +1033,7 @@
             <div class="proc">▶ Process (3)</div>
           </div>
         </div>
-        <p class="walk-cap">Open the sidebar, review the batch, click ▶ Process.</p>
+        <p class="walk-cap">Open the sidebar, review the batch, click ▶ Process. The 📄 Pages dropdown next to it jumps you to other HTML files.</p>
       </div>
       <div class="walk-step">
         <span class="walk-num">4</span>
@@ -1058,6 +1078,14 @@
       <details>
         <summary>Is anything sent to a cloud service?</summary>
         <div>The server binds to <code>127.0.0.1</code> only — never <code>0.0.0.0</code>. There's no LAN access, no external calls, no telemetry. The only "cloud" component is Claude itself, which is doing the editing through your existing Claude Code session.</div>
+      </details>
+      <details>
+        <summary>Are screenshots sent anywhere?</summary>
+        <div>They stay on your machine. Each comment's PNG is saved to <code>feedback/.screenshots/&lt;comment-id&gt;.png</code> next to your HTML files. Nothing leaves localhost. Claude Code reads them through its standard file-Read tool, same as any other file in your project.</div>
+      </details>
+      <details>
+        <summary>Can I work on multiple pages in one session?</summary>
+        <div>Yes. Open the Pages dropdown in the sidebar header — it lists every HTML file in the target directory with per-page comment counts. Click any page to jump there with the same session token. A red dot on the button means there's pending work on another page.</div>
       </details>
       <details>
         <summary>How is this different from just chatting with Claude about my HTML?</summary>

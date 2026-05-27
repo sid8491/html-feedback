@@ -89,6 +89,7 @@ You never have to switch back to the CLI.
 | 🧹 | **clear addressed (N)** wipes processed comments in one click |
 | 🔔 | **WhatsApp-style unread bubble** on the floating 💬 button |
 | 📸 | **Visual context** — every comment carries a screenshot of the region you were looking at, so Claude sees what you see |
+| 📄 | **Multi-page navigation** — the Pages dropdown in the sidebar lists every HTML file with per-page open/addressed counts and a dot showing pending work elsewhere |
 | 🔒 | **Local-only**, 127.0.0.1 bind, random per-session token, idle shutdown |
 | 0️⃣ | **Zero dependencies** — Python 3.10 + stdlib only |
 
@@ -122,17 +123,24 @@ The browser writes comments to `inbox.jsonl` (via the server). When you click �
 ```
 html-feedback/
 ├── lib/
-│   ├── server.py      Stdlib HTTP + SSE + token auth + patch revert/redo
-│   ├── feedback.js    Client: sidebar, composer, walkthrough, modals
-│   └── feedback.css   Polished UI, dark-mode aware
+│   ├── server.py             Stdlib HTTP + SSE + token auth + patch revert/redo
+│   ├── feedback.js           Client: sidebar, composer, walkthrough, modals
+│   ├── feedback.css          Polished UI, dark-mode aware
+│   └── vendor/
+│       └── html2canvas.min.js   Bundled for screenshot capture (MIT)
 ├── scripts/
-│   ├── inject.py      Idempotent <script> tag injector
-│   ├── start.py       One-command launcher (inject + spawn + open)
-│   └── watch_control.py  Trigger watcher for batch processing
-├── docs/index.html    Full user guide (open in any browser)
-├── SKILL.md           Claude Code skill spec — what Claude reads
-├── SPEC.md            Wire protocol + schemas
-└── LICENSE            MIT
+│   ├── inject.py             Idempotent <script> tag injector
+│   ├── start.py              One-command launcher (inject + spawn + open)
+│   └── watch_control.py      Trigger watcher for batch processing
+├── tests/
+│   └── smoke.py              End-to-end test (34 steps, stdlib-only)
+├── .github/workflows/
+│   └── test.yml              CI on ubuntu/windows/macos × Python 3.10–3.12
+├── docs/index.html           Full user guide (open in any browser)
+├── SKILL.md                  Claude Code skill spec — what Claude reads
+├── SPEC.md                   Wire protocol + schemas
+├── CHANGELOG.md              Release notes
+└── LICENSE                   MIT
 ```
 
 ## Keyboard shortcuts
