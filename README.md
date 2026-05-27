@@ -18,6 +18,7 @@
 </p>
 
 <p align="center">
+  <img alt="Smoke test" src="https://github.com/sid8491/html-feedback/actions/workflows/test.yml/badge.svg">
   <img alt="Python" src="https://img.shields.io/badge/python-3.10+-blue?style=flat-square">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green?style=flat-square">
   <img alt="Deps" src="https://img.shields.io/badge/deps-stdlib%20only-brightgreen?style=flat-square">
@@ -87,6 +88,7 @@ You never have to switch back to the CLI.
 | 🟡 | **Walkthrough highlights** mark every change; `j`/`k` to navigate |
 | 🧹 | **clear addressed (N)** wipes processed comments in one click |
 | 🔔 | **WhatsApp-style unread bubble** on the floating 💬 button |
+| 📸 | **Visual context** — every comment carries a screenshot of the region you were looking at, so Claude sees what you see |
 | 🔒 | **Local-only**, 127.0.0.1 bind, random per-session token, idle shutdown |
 | 0️⃣ | **Zero dependencies** — Python 3.10 + stdlib only |
 
