@@ -86,12 +86,34 @@ def _stream(src, dst) -> None:
         dst.flush()
 
 
+def _cleanup_on_exit(target: Path, keep_injected: bool, purge_feedback: bool) -> None:
+    """Remove the runtime footprint we added to the target dir.
+    Always called when the server subprocess exits. Controlled by flags."""
+    if not keep_injected:
+        try:
+            inject.main(["remove", "--dir", str(target)])
+            print("[cleanup] removed injection tags from HTML files")
+        except Exception as ex:
+            print(f"[cleanup] inject-remove failed: {ex}", file=sys.stderr)
+    if purge_feedback:
+        try:
+            import shutil
+            shutil.rmtree(target / "feedback", ignore_errors=True)
+            print("[cleanup] purged feedback/ directory")
+        except Exception as ex:
+            print(f"[cleanup] purge failed: {ex}", file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Start the html-feedback server.")
     p.add_argument("--dir", required=True, help="Target directory containing HTML files.")
     p.add_argument("--no-open", action="store_true", help="Don't auto-open the browser.")
     p.add_argument("--no-inject", action="store_true", help="Skip auto-injection of lib tags.")
     p.add_argument("--idle-timeout", type=int, default=600, help="Server idle timeout seconds.")
+    p.add_argument("--keep-injected", action="store_true",
+                   help="Don't strip injection tags from HTML files on exit (default: strip them).")
+    p.add_argument("--purge-on-exit", action="store_true",
+                   help="Also delete the feedback/ directory on exit (comments, history, snapshots).")
     args = p.parse_args(argv)
 
     target = Path(args.dir).resolve()
@@ -137,7 +159,6 @@ def main(argv: list[str] | None = None) -> int:
     except KeyboardInterrupt:
         try:
             if os.name == "nt":
-                # CTRL_BREAK is deliverable to a process group on Windows.
                 try:
                     os.kill(proc.pid, signal.CTRL_BREAK_EVENT)
                 except OSError:
@@ -154,6 +175,24 @@ def main(argv: list[str] | None = None) -> int:
             rc = proc.wait()
         except Exception:
             rc = 130
+    finally:
+        # Honor a shutdown sentinel the server may have written if the user clicked
+        # "End session" in the UI with extra-cleanup options.
+        sentinel = target / "feedback" / ".shutdown.json"
+        purge = args.purge_on_exit
+        keep = args.keep_injected
+        if sentinel.exists():
+            try:
+                import json
+                data = json.loads(sentinel.read_text(encoding="utf-8"))
+                if data.get("purge_feedback"):
+                    purge = True
+                if data.get("keep_injected"):
+                    keep = True
+                sentinel.unlink()
+            except Exception:
+                pass
+        _cleanup_on_exit(target, keep, purge)
     return rc
 
 

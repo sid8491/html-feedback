@@ -153,6 +153,16 @@ html-feedback/
 - Server self-shuts on idle (default 10 min) and when the parent process dies.
 - Designed for **single-user, local use**. Not hardened for shared servers.
 
+## Stopping & cleanup
+
+There are three equivalent ways to end a session — all clean up after themselves:
+
+1. **The ⏻ button** in the sidebar header. A modal asks whether to also delete history; either way, the server stops and the injection tags are stripped from your HTML files.
+2. **Tell Claude** *"stop html feedback"* or *"clean up"*. Claude POSTs `/api/shutdown` and reports back when done.
+3. **Ctrl-C** in the terminal running `start.py`. Same auto-cleanup runs.
+
+After cleanup, your HTML files are exactly as you started — minus any *content* edits Claude made (those stay, that's the point). Pass `--keep-injected` to `start.py` if you want to leave the tags in place between sessions; pass `--purge-on-exit` to also wipe the `feedback/` folder.
+
 ## When to use this
 
 ✅ Iterating on AI-generated reports, research artifacts, marketing copy

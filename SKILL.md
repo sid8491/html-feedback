@@ -80,9 +80,24 @@ Never edit a page that has no matching open comment. Do not preemptively improve
 
 Comments arriving in `inbox.jsonl` do **not** trigger work on their own. Wait for the user to click ▶ Process. The watcher only emits when a "process" line is written to `control.jsonl`.
 
-### 8. Stopping
+### 8. Stopping & cleaning up
 
-Tell the user to press Ctrl-C in the terminal running `start.py`. If that terminal is not available, the PID is recorded in `feedback/session.json` and can be killed directly.
+When the user asks to **stop**, **clean up**, **end session**, **remove html-feedback**, or anything similar:
+
+1. Read `<target>/feedback/session.json` to get `url` and `token`.
+2. POST to `<base>/api/shutdown?t=<token>` with body `{}` for a *keep-history* shutdown, or `{"purge_feedback": true}` to also delete `feedback/` (comments, history, snapshots).
+3. The server schedules a graceful exit. The wrapping `start.py` detects the subprocess exit and **automatically removes the `<!-- hfb:begin --> ... <!-- hfb:end -->` injection tags from every HTML file** in the target directory.
+4. Tell the user what was cleaned: injection tags always; `feedback/` only if they asked.
+
+If the user hits Ctrl-C in the terminal directly, the same auto-cleanup runs — they don't need to call you. If they passed `--keep-injected` to `start.py`, the injection tags stay.
+
+Phrases that trigger this workflow:
+- "stop html feedback"
+- "clean up"
+- "end the session"
+- "remove the injection tags"
+- "uninstall"
+- "we're done"
 
 ## Server API reference (used by Claude + UI)
 
@@ -98,6 +113,7 @@ Tell the user to press Ctrl-C in the terminal running `start.py`. If that termin
 | GET | `/api/inbox` | UI | Returns the inbox with `status` computed (`open` or `addressed`). Filters out tombstones. |
 | GET | `/api/history` | UI | Returns all history entries. |
 | GET | `/api/events` | UI | SSE stream — emits `history`, `inbox`, `heartbeat` events. |
+| POST | `/api/shutdown` | UI / Claude | Trigger graceful server exit. Body: `{}` (keep history) or `{"purge_feedback": true}` (also delete `feedback/`). `start.py` always strips injection tags from HTML files on subprocess exit. |
 
 Claude only needs `POST /api/snapshot`. Everything else is the UI's job.
 

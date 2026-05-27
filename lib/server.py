@@ -549,6 +549,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._route_post_feedback_delete()
         if path == "/api/feedback/clear-addressed" and method == "POST":
             return self._route_post_clear_addressed()
+        if path == "/api/shutdown" and method == "POST":
+            return self._route_post_shutdown()
         if path == "/api/revert" and method == "POST":
             return self._route_post_revert()
         if path == "/api/snapshot" and method == "POST":
@@ -739,6 +741,41 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(500, {"error": f"write failed: {ex}"})
             return 500
         self._send_json(200, {"ok": True, "deleted": sorted(to_delete), "count": len(to_delete)})
+        return 200
+
+    def _route_post_shutdown(self) -> int:
+        """Trigger a graceful shutdown. The parent start.py wrapper handles cleanup
+        based on a sentinel file we write here."""
+        raw_body = self._read_body()
+        purge = False
+        keep_injected = False
+        if raw_body:
+            try:
+                body = json.loads(raw_body.decode("utf-8"))
+                if isinstance(body, dict):
+                    purge = bool(body.get("purge_feedback"))
+                    keep_injected = bool(body.get("keep_injected"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                pass
+        sentinel = FEEDBACK_DIR / ".shutdown.json"
+        try:
+            sentinel.write_text(
+                json.dumps({"purge_feedback": purge, "keep_injected": keep_injected, "ts": now_iso()}),
+                encoding="utf-8",
+            )
+        except OSError:
+            pass
+        self._send_json(200, {"ok": True, "shutting_down": True})
+
+        def _do_shutdown() -> None:
+            time.sleep(0.25)  # let the response flush
+            log("shutdown requested via /api/shutdown")
+            SHUTDOWN_EVENT.set()
+            try:
+                os.kill(os.getpid(), signal.SIGTERM)
+            except OSError:
+                pass
+        threading.Thread(target=_do_shutdown, daemon=True).start()
         return 200
 
     def _route_history(self) -> int:
