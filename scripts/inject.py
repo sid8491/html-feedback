@@ -10,6 +10,7 @@ from pathlib import Path
 BLOCK = (
     "<!-- hfb:begin -->\n"
     '<link rel="stylesheet" href="/lib/feedback.css">\n'
+    '<script defer src="/lib/vendor/html2canvas.min.js"></script>\n'
     '<script defer src="/lib/feedback.js"></script>\n'
     "<!-- hfb:end -->"
 )

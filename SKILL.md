@@ -50,6 +50,8 @@ For every comment in the `pending_ids` of the trigger event:
 
 a. **Read the comment** from `<target>/feedback/inbox.jsonl`. Skip any line where `_op == "delete"` (soft-delete tombstone) — those are not comments. Also skip any comment whose `id` appears in a `_op:"delete"` entry.
 
+   - If the comment object (as returned by `/api/inbox`) includes a `screenshot_path`, also Read that file (it's a PNG; the Read tool handles images visually). The screenshot shows the region the user was looking at when they left the comment — use it as visual context for your edit. The file lives at `<target>/<screenshot_path>` (i.e. `<target>/feedback/.screenshots/<comment_id>.png`).
+
 b. **Locate the anchor in the source HTML.** Read the page file. Use `anchor.selected_text` together with `anchor.text_before` and `anchor.text_after` to find the exact span. If those don't match (whitespace drift, edits since the comment was made), fall back to `anchor.selector`. For `anchor.type == "element"`, use `text_before` plus tag name from the selector. For `anchor.type == "page"`, treat the whole document as the target.
 
 c. **Snapshot before editing.** Read `<target>/feedback/session.json` to get the server `url` and `token`. POST to `<base>/api/snapshot?t=<token>` with body `{"page": "<page>.html"}`. The response is `{"snapshot_path": "feedback/.snapshots/<page>/<iso-ts>.html"}`. Keep that path as **`snapshot_path`** — the *before* snapshot.
@@ -104,6 +106,7 @@ Phrases that trigger this workflow:
 | Method | Path | Used by | Purpose |
 |---|---|---|---|
 | POST | `/api/snapshot` | Claude | Copy current page to `.snapshots/<page>/<ts>.html`, return relative path. Call **before AND after** every edit. |
+| POST | `/api/screenshot` | UI | Upload the PNG snapshot of the region a comment is anchored to. Body: `{comment_id, image_b64}`. Saved to `feedback/.screenshots/<comment_id>.png`. |
 | POST | `/api/feedback` | UI | Append a new comment to `inbox.jsonl`. Claude should never call this. |
 | POST | `/api/feedback/delete` | UI | Soft-delete a comment (and its replies) by appending a tombstone. |
 | POST | `/api/feedback/clear-addressed` | UI | Soft-delete every addressed comment on the page in one go. |
@@ -111,6 +114,7 @@ Phrases that trigger this workflow:
 | POST | `/api/revert` | UI | Patch-style undo of a specific edit. Server reverse-applies the diff between `snapshot_path` and `snapshot_after_path`. |
 | POST | `/api/redo` | UI | Re-apply a previously reverted edit by forward-applying the same diff. |
 | GET | `/api/inbox` | UI | Returns the inbox with `status` computed (`open` or `addressed`). Filters out tombstones. |
+| GET | `/api/pages` | UI | Returns `{pages: [{name, open, addressed, total}, ...]}` — one entry per `*.html` file in the target dir, with per-page comment counts (same filtering as `/api/inbox`). Used by the cross-page navigation dropdown. |
 | GET | `/api/history` | UI | Returns all history entries. |
 | GET | `/api/events` | UI | SSE stream — emits `history`, `inbox`, `heartbeat` events. |
 | POST | `/api/shutdown` | UI / Claude | Trigger graceful server exit. Body: `{}` (keep history) or `{"purge_feedback": true}` (also delete `feedback/`). `start.py` always strips injection tags from HTML files on subprocess exit. |

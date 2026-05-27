@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import binascii
 import difflib
 import json
 import mimetypes
@@ -179,6 +181,7 @@ def build_hfb_block(token: str) -> str:
     return (
         f"{HFB_BEGIN}\n"
         f'<link rel="stylesheet" href="/lib/feedback.css?t={token}">\n'
+        f'<script defer src="/lib/vendor/html2canvas.min.js?t={token}"></script>\n'
         f'<script defer src="/lib/feedback.js?t={token}"></script>\n'
         f"{HFB_END}"
     )
@@ -529,8 +532,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._route_static(LIB_DIR / "feedback.js", "application/javascript; charset=utf-8")
         if path == "/lib/feedback.css" and method == "GET":
             return self._route_static(LIB_DIR / "feedback.css", "text/css; charset=utf-8")
+        if path.startswith("/lib/vendor/") and path.endswith(".js") and method == "GET":
+            return self._route_vendor(path)
         if path == "/api/inbox" and method == "GET":
             return self._route_inbox()
+        if path == "/api/pages" and method == "GET":
+            return self._route_pages()
         if path == "/api/history" and method == "GET":
             return self._route_history()
         if path == "/api/session" and method == "GET":
@@ -549,6 +556,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._route_post_feedback_delete()
         if path == "/api/feedback/clear-addressed" and method == "POST":
             return self._route_post_clear_addressed()
+        if path == "/api/screenshot" and method == "POST":
+            return self._route_post_screenshot()
         if path == "/api/shutdown" and method == "POST":
             return self._route_post_shutdown()
         if path == "/api/revert" and method == "POST":
@@ -584,6 +593,24 @@ class Handler(BaseHTTPRequestHandler):
         data = path.read_bytes()
         self._send(200, data, {"Content-Type": ctype, "Cache-Control": "no-cache"})
         return 200
+
+    def _route_vendor(self, urlpath: str) -> int:
+        # urlpath like /lib/vendor/html2canvas.min.js
+        vendor_dir = (LIB_DIR / "vendor").resolve()
+        rel = urlpath[len("/lib/vendor/"):]
+        if not rel or "/" in rel or "\\" in rel:
+            self._send_json(404, {"error": "not found"})
+            return 404
+        try:
+            resolved = (vendor_dir / rel).resolve()
+            resolved.relative_to(vendor_dir)
+        except (ValueError, OSError):
+            self._send_json(404, {"error": "not found"})
+            return 404
+        if not resolved.exists() or not resolved.is_file():
+            self._send_json(404, {"error": "not found"})
+            return 404
+        return self._route_static(resolved, "application/javascript; charset=utf-8")
 
     def _route_html(self, urlpath: str) -> int:
         # urlpath like /foo.html or /sub/bar.html
@@ -630,9 +657,60 @@ class Handler(BaseHTTPRequestHandler):
             if not cid:
                 continue
             addressed[cid] = h.get("snapshot_path") not in reverted_snapshots
+        screenshots_dir = FEEDBACK_DIR / ".screenshots"
         for c in comments:
             c["status"] = "addressed" if addressed.get(c.get("id")) else "open"
+            cid = c.get("id")
+            if isinstance(cid, str) and cid:
+                shot = screenshots_dir / f"{cid}.png"
+                if shot.exists():
+                    c["screenshot_path"] = f"feedback/.screenshots/{cid}.png"
         self._send_json(200, {"comments": comments})
+        return 200
+
+    def _route_pages(self) -> int:
+        # Same filtering as _route_inbox: tombstones + reverted-edit aware.
+        raw = read_jsonl(INBOX_PATH)
+        deleted_ids: set[str] = set()
+        comments: list[dict] = []
+        for c in raw:
+            if c.get("_op") == "delete":
+                cid = c.get("id")
+                if isinstance(cid, str):
+                    deleted_ids.add(cid)
+                continue
+            comments.append(c)
+        comments = [c for c in comments if c.get("id") not in deleted_ids]
+        history = read_jsonl(HISTORY_PATH)
+        reverted_snapshots = {h.get("snapshot_path") for h in history
+                              if h.get("kind") == "revert" and h.get("snapshot_path")}
+        addressed: dict[str, bool] = {}
+        for h in history:
+            if h.get("kind") != "edit":
+                continue
+            cid = h.get("comment_id")
+            if not cid:
+                continue
+            addressed[cid] = h.get("snapshot_path") not in reverted_snapshots
+
+        # Per-page counters, seeded from disk so pages with zero comments still appear.
+        try:
+            names = sorted(p.name for p in TARGET_DIR.glob("*.html") if p.is_file())
+        except OSError:
+            names = []
+        counts: dict[str, dict[str, int]] = {n: {"open": 0, "addressed": 0, "total": 0} for n in names}
+        for c in comments:
+            page = c.get("page")
+            if not isinstance(page, str) or page not in counts:
+                # Skip comments that don't belong to a known page on disk.
+                continue
+            counts[page]["total"] += 1
+            if addressed.get(c.get("id")):
+                counts[page]["addressed"] += 1
+            else:
+                counts[page]["open"] += 1
+        pages = [{"name": n, **counts[n]} for n in names]
+        self._send_json(200, {"pages": pages})
         return 200
 
     def _route_post_feedback_delete(self) -> int:
@@ -671,6 +749,13 @@ class Handler(BaseHTTPRequestHandler):
         except OSError as ex:
             self._send_json(500, {"error": f"write failed: {ex}"})
             return 500
+        # Best-effort: also unlink any captured screenshots for these comments.
+        screenshots_dir = FEEDBACK_DIR / ".screenshots"
+        for cid in to_delete:
+            try:
+                (screenshots_dir / f"{cid}.png").unlink()
+            except (FileNotFoundError, OSError):
+                pass
         self._send_json(200, {"ok": True, "deleted": sorted(to_delete)})
         return 200
 
@@ -740,6 +825,13 @@ class Handler(BaseHTTPRequestHandler):
         except OSError as ex:
             self._send_json(500, {"error": f"write failed: {ex}"})
             return 500
+        # Best-effort: also unlink any captured screenshots for these comments.
+        screenshots_dir = FEEDBACK_DIR / ".screenshots"
+        for cid in to_delete:
+            try:
+                (screenshots_dir / f"{cid}.png").unlink()
+            except (FileNotFoundError, OSError):
+                pass
         self._send_json(200, {"ok": True, "deleted": sorted(to_delete), "count": len(to_delete)})
         return 200
 
@@ -832,6 +924,87 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(500, {"error": f"write failed: {e}"})
             return 500
         self._send_json(200, {"id": obj["id"], "status": "open"})
+        return 200
+
+    def _route_post_screenshot(self) -> int:
+        """Accept a base64-encoded PNG and persist it under feedback/.screenshots/<id>.png."""
+        # Allow a larger body than the default cap: a 5MB PNG is ~6.7MB base64-encoded,
+        # plus a few hundred bytes of JSON envelope.
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            self._send_json(400, {"error": "invalid content-length"})
+            return 400
+        if length <= 0:
+            self._send_json(400, {"error": "empty body"})
+            return 400
+        if length > 8_000_000:
+            self._send_json(413, {"error": "body too large"})
+            return 413
+        try:
+            raw = self.rfile.read(length)
+        except OSError:
+            self._send_json(400, {"error": "read failed"})
+            return 400
+        try:
+            body = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            self._send_json(400, {"error": "invalid json"})
+            return 400
+        if not isinstance(body, dict):
+            self._send_json(400, {"error": "body must be a JSON object"})
+            return 400
+        allowed = {"comment_id", "image_b64"}
+        extra = set(body.keys()) - allowed
+        if extra:
+            self._send_json(400, {"error": f"unknown fields: {sorted(extra)}"})
+            return 400
+        cid = body.get("comment_id")
+        img_b64 = body.get("image_b64")
+        if not isinstance(cid, str) or not cid.startswith("c-") or len(cid) > 64:
+            self._send_json(400, {"error": "invalid comment_id"})
+            return 400
+        # Defence-in-depth: comment_id is used as a filename component.
+        if "/" in cid or "\\" in cid or "." in cid.replace("c-", "", 1):
+            self._send_json(400, {"error": "invalid comment_id"})
+            return 400
+        if not isinstance(img_b64, str) or not img_b64:
+            self._send_json(400, {"error": "invalid image_b64"})
+            return 400
+        # Strip any accidental data-URL prefix the client might have left in.
+        if img_b64.startswith("data:"):
+            comma = img_b64.find(",")
+            if comma == -1:
+                self._send_json(400, {"error": "invalid image_b64"})
+                return 400
+            img_b64 = img_b64[comma + 1:]
+        try:
+            png_bytes = base64.b64decode(img_b64, validate=True)
+        except (binascii.Error, ValueError):
+            self._send_json(400, {"error": "invalid base64"})
+            return 400
+        if len(png_bytes) > 5_000_000:
+            self._send_json(413, {"error": "png too large (>5MB)"})
+            return 413
+        # Light sanity check on PNG signature.
+        if not png_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+            self._send_json(400, {"error": "not a PNG"})
+            return 400
+        shots_dir = FEEDBACK_DIR / ".screenshots"
+        try:
+            shots_dir.mkdir(parents=True, exist_ok=True)
+            dest = shots_dir / f"{cid}.png"
+            tmp = dest.with_suffix(dest.suffix + ".tmp")
+            with open(tmp, "wb") as f:
+                f.write(png_bytes)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, dest)
+        except OSError as ex:
+            self._send_json(500, {"error": f"write failed: {ex}"})
+            return 500
+        rel = f"feedback/.screenshots/{cid}.png"
+        self._send_json(200, {"ok": True, "screenshot_path": rel})
         return 200
 
     def _route_post_snapshot(self) -> int:

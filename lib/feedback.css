@@ -439,6 +439,89 @@ mark.hfb-change.hfb-change-current {
 .hfb-revert-link:hover { opacity: 1; text-decoration: underline; }
 .hfb-revert-link.hfb-redo-link { color: var(--hfb-accent, #2c5ed9); }
 
+/* ─── Pages dropdown ─── */
+.hfb-pages-wrap {
+  position: relative;
+  display: inline-block;
+}
+.hfb-pages-button { position: relative; }
+.hfb-pages-button .hfb-pages-other-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--hfb-danger, #e83a3a);
+  box-shadow: 0 0 0 1.5px var(--hfb-bg);
+}
+.hfb-pages-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  max-width: 320px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--hfb-bg);
+  color: var(--hfb-fg);
+  border: 1px solid var(--hfb-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.22), 0 3px 8px rgba(0,0,0,.10);
+  padding: 4px;
+  z-index: calc(var(--hfb-z) + 2);
+  display: none;
+  font-family: var(--hfb-font);
+  font-size: 12.5px;
+}
+.hfb-pages-dropdown.hfb-visible {
+  display: block;
+  animation: hfb-popin 0.14s ease-out;
+}
+.hfb-pages-dropdown .hfb-page-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--hfb-fg);
+  cursor: pointer;
+  line-height: 1.3;
+}
+.hfb-pages-dropdown a.hfb-page-row:hover {
+  background: rgba(127, 127, 127, 0.10);
+}
+.hfb-pages-dropdown .hfb-page-row.hfb-page-current {
+  cursor: default;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--hfb-fg);
+  opacity: .85;
+}
+.hfb-pages-dropdown .hfb-page-row .hfb-page-name {
+  font-weight: 500;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  flex: 1;
+}
+.hfb-pages-dropdown .hfb-page-row .hfb-page-dot {
+  color: var(--hfb-accent);
+  margin-right: 2px;
+}
+.hfb-pages-dropdown .hfb-page-row .hfb-page-counts {
+  font-size: 10.5px;
+  color: var(--hfb-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.hfb-pages-dropdown .hfb-page-empty {
+  padding: 10px 12px;
+  color: var(--hfb-muted);
+  font-style: italic;
+  font-size: 11.5px;
+}
+
 .hfb-btn-process {
   background: var(--hfb-accent, #2c5ed9);
   color: #fff;
